@@ -1,26 +1,39 @@
-shty = shty || {}
+sty = sty || {}
+
+sty.CODE_FIELD_ID = '#code-field'
+sty.SHORTEN_FORM_ID = '#shorten-form'
+sty.URL_FIELD_ID = '#url-field'
+
 
 # Kick things off
-shty.init = ->
-  $('#shorten-form').on 'submit', shty.onFormSubmit
+sty.init = ->
+  $(sty.SHORTEN_FORM_ID).on 'submit', sty.onFormSubmit
+  $(sty.CODE_FIELD_ID).on 'blur', sty.validForm
+  $(sty.URL_FIELD_ID).on 'blur', sty.validForm
+
 
 # Handle a form submission
 # @param {Event} e
-shty.onFormSubmit = (e) ->
+sty.onFormSubmit = (e) ->
   e.preventDefault()
+
+  if (!sty.validForm())
+    return false
+
   data =
-    url: $('#url-field').val()
-    code: $('#shortcode-field').val()
+    url: $(sty.SHORTEN_FORM_ID).val()
+    code: $(sty.CODE_FIELD_ID).val()
 
-  if not data.url
-    shty.handleNoUrl()
+  $.post(sty.POST_URL, data, sty.onResponse)
 
-  # TODO: Left off here
-
-
-# Handle a form missing a URL
-shty.handleNoUrl = -> # TODO
+  return true
 
 
+sty.onResponse = (resp) ->
+  # TODO
 
-$ shty.init
+sty.validForm = ->
+  # TODO
+
+
+$ sty.init
