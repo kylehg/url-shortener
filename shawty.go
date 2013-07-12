@@ -34,13 +34,18 @@ func handleCode(w http.ResponseWriter, r *http.Request, code string) {
 		handleIndex(w, r, true)
 	} else {
 		// Code exists - redirect appropritely
-		http.Redirect(w, r, url, http.StatusFound)
+		doRedirect(w, r, url)
 	}
 }
 
 // Lookup a code
-func lookupCode(code string) {
+func lookupCode(code string) string {
 	// TODO
+}
+
+func doRedirect(w http.ResponseWriter, r *http.Request, url string) {
+	// TODO: Some kind of logging
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 // Handle the attempted creation of a new code
@@ -67,8 +72,12 @@ func handleCreateCode(w http.ResponseWriter, r *http.Request, url string) {
 }
 
 func handleCreateCustomCode(w http.ResponseWriter, r *http.Request, url string,
-	code string) ({
+	code string) {
 	
+}
+
+func genNewCodeForUrl(url string) string {
+
 }
 
 func main() {
@@ -86,3 +95,16 @@ func main() {
 	})
 	http.ListenAndServe(":8080", nil)
 }
+
+
+
+
+
+// Shorten the given URL and return the shortcode
+func ShortenUrl(url string) (code string, err error) {}
+
+// Shorten the given URL to the given code. Return true if the URL was
+// successfully saved to the code, false if the code was taken.
+func ShortenUrlToCode(url string, code string) (wasSaved bool, err error) {}
+func LookupCode(code string) (url string, err error) {}
+func LookupUrl(code string) (url string, err error) {}
