@@ -26,15 +26,64 @@ func TestGenShortcode(t *testing.T) {
 	}
 
 	// TODO iter tests
-
-	code, err := genShortcode(-1)
-	if err == nil {
-		t.Errorf("TODO")
-	}
 }
 
-// Test that getting a next shortcode works
+// Test URL shortening
+// TODO
 func TestGetNextShortcode(t *testing.T) {
+	url1 := "http://google.com"
+	url2 := "http://medium.com"
+
+	code, err := s.ShortenUrl(url)
+	tests := []struct {
+
+	}{
+		{url, code, shouldErr, msg},
+
+
+		{url1, code1, false, msg},
+		{url1, code1, false, msg},
+		{url2, code2, false, msg},
+		{url3, code3, false, msg},
+		{url2, code2, false, msg},
+		{url1, code1, false msg},
+	}
+
+	wasSaved, err := s.ShortenUrlToCode(url, code)
+	tests := []struct {
+
+	}{
+		{url, code, wasSaved, shouldErr, msg},
+
+
+		{url1, code1, true, false, msg},
+		{url1, code1, true, false, msg},
+
+		{url2, code1, false, true, msg},
+		{url2, code2, true, false, msg},
+
+		{url1, code1, true, false, msg},
+		{url3, code1, true, false, msg},
+		{url, code, wasSaved, shouldErr, msg},
+
+		{url1, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+		{url, code, wasSaved, shouldErr, msg},
+	}
+
+
+
+
+
+
+
+
+
+
 	testSetUrl := func(url string, inputCode string, expectedCode string, expectedErr bool, errStr string) {
 		if inputCode == "" {
 			code, err := s.ShortenUrl(url)
