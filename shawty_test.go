@@ -1,12 +1,15 @@
-package shawty
+package shawty_test
 
-import "testing"
+import (
+	"testing"
+	. "shawty"
+)
 
 // Test that generating shortcodes from integers works.
 func TestGenShortcode(t *testing.T) {
 
 	testShortcode := func(n int, str string, errStr string) {
-		code, err := s.genShortcode(n)
+		code, err := genShortcode(n)
 		if code != str || err != nil {
 			t.Errorf(errStr)
 		}
