@@ -1,4 +1,4 @@
-package main
+package shawty
 
 import (
 	"html/template"

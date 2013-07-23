@@ -1,10 +1,12 @@
 package shawty
 
 import (
-	"bytes"
+//	"bytes"
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"math"
-	"math/big"
+//	"math/big"
+	"strings"
 )
 
 // TODO
@@ -18,35 +20,22 @@ func codeKey(code string) string {
 
 const URL_COUNT_KEY = "global:count"
 
-package main
-
-import (
-    "fmt"
-    "math"
-    "strings"
-)
-
 func genShortcode(n int) string {
-	const ALPHABET =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"
+	const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"
 	const BASE = 64
 
 	n += int(math.Pow(BASE, 3))
 	code := make([]string, 0)
 	for n > 0 {
-        r := n % BASE
-        n = n / BASE
+		r := n % BASE
+		n = n / BASE
 		code = append(code, string(ALPHABET[r]))
-        fmt.Printf("r=%d, n=%d, code=%s\n", r, n, code)
+		fmt.Printf("r=%d, n=%d, code=%s\n", r, n, code)
 	}
-    for i, j := 0, len(code)-1; i < j; i, j = i+1, j-1 {
-    	code[i], code[j] = code[j], code[i]
+	for i, j := 0, len(code)-1; i < j; i, j = i+1, j-1 {
+		code[i], code[j] = code[j], code[i]
 	}
 	return strings.Join(code, "")
-}
-
-func main() {
-    fmt.Println(genShortcode(0))
 }
 
 // Shorten the given URL and return the shortcode
