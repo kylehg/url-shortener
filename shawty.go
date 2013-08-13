@@ -2,26 +2,49 @@ package shawty
 
 import (
 	"fmt"
-	"math"
+//	"math"
 	"strings"
 )
 
 func genShortcode(n int) string {
-	const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"
-	const BASE = 64
+	const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+		"0123456789"
+	const BASE = 63
 
-	n += int(math.Pow(BASE, 3))
 	code := make([]string, 0)
+	
+	if r == 1 {
+		code = append(code, "a")
+	}
 	for n > 0 {
 		r := n % BASE
 		n = n / BASE
-		code = append(code, string(ALPHABET[r]))
+		char := ALPHABET[r]
+		code = append(code, string(char))
 		fmt.Printf("r=%d, n=%d, code=%s\n", r, n, code)
+		r = n % BASE
 	}
+
+//	n += int(math.Pow(BASE, 3))
+//	code := make([]string, 0)
+//	for n > 0 {
+//		r := n % BASE
+//		n = n / BASE
+//		char := ALPHABET[r]
+//		if n == 0 {
+//			char = ALPHABET[r-1]
+//		}
+//		code = append(code, string(char))
+//		fmt.Printf("r=%d, n=%d, code=%s\n", r, n, code)
+//	}
+
+	// Reverse the built code
 	for i, j := 0, len(code)-1; i < j; i, j = i+1, j-1 {
 		code[i], code[j] = code[j], code[i]
 	}
-	return strings.Join(code, "")
+	res := strings.Join(code, "")
+	fmt.Printf("-> %s\n", res)
+	return res
 }
 
 // func main() {

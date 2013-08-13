@@ -1,31 +1,43 @@
 package shawty
 
-import "testing"
+import (
+	"fmt"
+	"math"
+	"testing"
+)
 
 // Test that generating shortcodes from integers works.
 func TestGenShortcode(t *testing.T) {
 
-	testShortcode := func(n int, str string, errStr string) {
-		code, err := genShortcode(n)
-		if code != str || err != nil {
-			t.Errorf(errStr)
+	testShortcode := func(n int, str string) {
+		code := genShortcode(n)
+		if code != str {
+			t.Errorf(fmt.Sprintf("Expected %d -> %s, was %s", n, str, code))
 		}
 	}
 
+	p := func(n float64) int { return int(math.Pow(63, n)) }
+
 	tests := []struct {
-		n      int
-		str    string
-		errStr string
+		n   int
+		str string
 	}{
-		{0, "aaaa", "TODO"},
-		{1, "aaab", "TODO"},
-		{26, "aaaA", "TODO"},
-		{52, "aaa1", "TODO"},
-		{63, "aaa_", "TODO"},
-		{64, "aaaaa", "TODO"},
+		{0, "a"},
+		{1, "b"},
+		{26, "A"},
+		{26 + 26, "0"},
+		{26 + 26 + 9, "9"},
+		{62, "aa"},
+		{63, "ba"},
+		{p(1) + 1, "bb"},
+		{p(2) - 1, "aaa"},
+		{p(2), "baa"},
+		{p(3), "aaaa"},
 	}
 
-	// TODO iter tests
+	for _, test := range tests {
+		testShortcode(test.n, test.str)
+	}
 }
 
 // Test URL shortening
