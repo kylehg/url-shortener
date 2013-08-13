@@ -1,29 +1,9 @@
 package shawty
 
 import (
-	"bytes"
-	"github.com/garyburd/redigo/redis"
+	"fmt"
 	"math"
-	"math/big"
-)
-
-// TODO
-var network = ""
-var address = ""
-var conn, err = redis.Dial(network, address)
-
-func codeKey(code string) string {
-	return "code:" + code
-}
-
-const URL_COUNT_KEY = "global:count"
-
-package main
-
-import (
-    "fmt"
-    "math"
-    "strings"
+	"strings"
 )
 
 func genShortcode(n int) string {
