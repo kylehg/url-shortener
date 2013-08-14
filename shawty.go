@@ -53,7 +53,7 @@ func ShortenUrl(url string) (code string, err error) {
 }
 
 // Shorten the given URL to the given code. Return true if the URL was
-// successfully saved to the code, false if the code was taken.
+// successfully saved or already mapped to the URL, false if it was taken
 func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	success := false
 
