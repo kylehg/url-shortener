@@ -5,7 +5,6 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"math/rand"
 	"strings"
-	"time"
 )
 
 // TODO
@@ -23,7 +22,7 @@ const DEFAULT_LEN = 5
 func genRandShortcode(n int) string {
 	code := make([]string, n)
 	for i := 0; i < n; i++ {
-		code[i] = rand.Intn(ALPHABET_LEN)
+		code[i] = string(ALPHABET[rand.Intn(ALPHABET_LEN)])
 	}
 	res := strings.Join(code, "")
 	fmt.Printf("-> %s\n", res)
@@ -37,13 +36,11 @@ func codeKey(code string) string {
 
 // Shorten the given URL and return the shortcode
 func ShortenUrl(url string) (code string, err error) {
-	var code string
-
 	for exists := true; exists; {
 		code = genRandShortcode(DEFAULT_LEN)
-		key = codeKey(code)
+		key := codeKey(code)
 
-		exists, err := conn.Do("SETNX", key, url)
+		exists, err = redis.Bool(conn.Do("SETNX", key, url))
 		if err != nil {
 			return
 		}
@@ -55,8 +52,6 @@ func ShortenUrl(url string) (code string, err error) {
 // Shorten the given URL to the given code. Return true if the URL was
 // successfully saved or already mapped to the URL, false if it was taken
 func ShortenUrlToCode(url string, code string) (success bool, err error) {
-	success := false
-
 	// Attempt to set the shortcode
 	wasSet, err := redis.Bool(conn.Do("SETNX", codeKey(code), url))
 	if err != nil {
@@ -64,7 +59,7 @@ func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	}
 
 	if !wasSet {
-		setUrl, err := conn.Do("GET", codeKey(code))
+		setUrl, err := redis.String(conn.Do("GET", codeKey(code)))
 		success = setUrl == url
 		return
 	}
