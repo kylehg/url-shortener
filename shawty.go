@@ -1,53 +1,53 @@
 package shawty
 
 import (
+	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"math/rand"
 	"strings"
 )
 
-// TODO
-const network = ""
-const address = ""
+const NETWORK = "tcp"
+const ADDRESS = ":6379"
 
-var conn, err = redis.Dial(network, address)
-
-const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-	"0123456789"
+const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ALPHABET_LEN = len(ALPHABET)
 const DEFAULT_LEN = 5
 
-// Generate a string of n random chars from ALPHABET
-func genRandShortcode(n int) string {
-	code := make([]string, n)
-	for i := 0; i < n; i++ {
-		code[i] = string(ALPHABET[rand.Intn(ALPHABET_LEN)])
-	}
-	res := strings.Join(code, "")
-	fmt.Printf("-> %s\n", res)
-	return res
+var conn, err = redis.Dial(NETWORK, ADDRESS)
+if err != nil {
+	panic("Error connecting to Redis database: " + err.Error())
 }
 
-// Convert a shortcode to a shotcode key in Redis
-func codeKey(code string) string {
-	return "code:" + code
-}
 
 // Shorten the given URL and return the shortcode
 func ShortenUrl(url string) (code string, err error) {
-	for exists := true; exists; {
-		code = genRandShortcode(DEFAULT_LEN)
-		key := codeKey(code)
+	// First, check that URL isn't already mapped by a random shortcode
+	code, err = redis.String(conn.Do("GET", urlKey(url)))
+	if err != redis.ErrNil {
+		return
+	}
 
-		exists, err = redis.Bool(conn.Do("SETNX", key, url))
+	// If not, try generating shortcodes until we find one that's not taken
+	for wasSet := false; wasSet == false; {
+		code = genRandShortcode(DEFAULT_LEN)
+		wasSet, err = redis.Bool(conn.Do("SETNX", codeKey(code), url))
 		if err != nil {
 			return
 		}
 	}
 
+	// Set that the URL is mapped by the code
+	var urlMapped bool
+	urlMapped, err = redis.Bool(conn.Do("SETNX", urlKey(url), code))
+	if urlMapped {
+		return "", errors.New(fmt.Sprintf("Attempted to add already-mapped URL %s to %s", url, code))
+	}
+
 	return
 }
+
 
 // Shorten the given URL to the given code. Return true if the URL was
 // successfully saved or already mapped to the URL, false if it was taken
@@ -71,4 +71,28 @@ func ShortenUrlToCode(url string, code string) (success bool, err error) {
 // Return the URL for the given shortcode.
 func LookupUrl(code string) (url string, err error) {
 	return redis.String(conn.Do("GET", codeKey(code)))
+}
+
+
+// Generate a string of n random chars from ALPHABET
+func genRandShortcode(n int) string {
+	code := make([]string, n)
+	for i := 0; i < n; i++ {
+		code[i] = string(ALPHABET[rand.Intn(ALPHABET_LEN)])
+	}
+	res := strings.Join(code, "")
+	fmt.Println("Random code " + res)
+	return res
+}
+
+
+// Convert a shortcode to a shotcode key for Redis
+func codeKey(code string) string {
+	return "code:" + code
+}
+
+
+// Convert a URL to a URL key for Redis
+func urlKey(code string) string {
+	return "url:" + code
 }

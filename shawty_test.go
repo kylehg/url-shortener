@@ -1,9 +1,19 @@
 package shawty
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
+
+// Test that generating
+func TestGenRandShortcode(t *testing.T) {
+	for i := 0; i < 25; i++ {
+		fmt.Println(genRandShortcode(5))
+	}
+}
 
 // Test URL shortening
-func TestShortenUrl(t *testing.T) {
+func _TestShortenUrl(t *testing.T) {
 	test := func(url string, expectedCode string) string {
 		code, err := ShortenUrl(url)
 		if err != nil {
