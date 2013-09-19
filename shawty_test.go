@@ -1,37 +1,27 @@
 package shawty
 
-import (
-	"fmt"
-	"math"
-	"testing"
-)
+import "testing"
 
 // Test URL shortening
-func TestGetNextShortcode(t *testing.T) {
-	testUrlCode := func(url string, expectedCode string) string {
+func TestShortenUrl(t *testing.T) {
+	test := func(url string, expectedCode string) string {
 		code, err := ShortenUrl(url)
 		if err != nil {
-			t.Error("Error: " + err.Error())
+			t.Errorf("Error: %s", err.Error())
 		}
-		if code != expectedCode {
-			t.Errorf("Expected %s -> %s, was %s")
+		if expectedCode != "" && code != expectedCode  {
+			t.Errorf("Expected %s -> %s, was %s", url, expectedCode, code)
 		}
+		return code
 	}
 
 	url1 := "http://google.com"
 	url2 := "http://medium.com"
-	tests := []struct {
-		url  string
-		code string
-	}{
-		{url1, code1},
-		{url2, code2},
-		{url1, code1},
-		{url2, code2},
-		{url2, code2},
-		{url1, code1},
-	}
-	for _, test := range tests {
-		testUrlCode(test.url, test.code)
+	code1 := test(url1, "")
+	code2 := test(url2, "")
+	test(url2, code2)
+	test(url1, code1)
+	if code1 == code2 {
+		t.Error("Duplicate codes")
 	}
 }

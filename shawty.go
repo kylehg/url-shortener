@@ -59,7 +59,8 @@ func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	}
 
 	if !wasSet {
-		setUrl, err := redis.String(conn.Do("GET", codeKey(code)))
+		var setUrl string
+		setUrl, err = redis.String(conn.Do("GET", codeKey(code)))
 		success = setUrl == url
 		return
 	}
@@ -68,6 +69,6 @@ func ShortenUrlToCode(url string, code string) (success bool, err error) {
 }
 
 // Return the URL for the given shortcode.
-func LookupUrl(code sting) (url string, err error) {
+func LookupUrl(code string) (url string, err error) {
 	return redis.String(conn.Do("GET", codeKey(code)))
 }
