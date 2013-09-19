@@ -27,7 +27,7 @@ Unless otherwise specified, API responses are encoded as JSON and take the form:
 
 The main HTML app.
 
-#### POST
+#### PUT + POST
 
 **Parameters**
 
@@ -39,7 +39,7 @@ The main HTML app.
 - **201 Created**: The URL was successfully shortened to a new short code, returned as `code`.
 
 
-### '/:shortcode'
+### `/:shortcode`
 
 #### GET
 
@@ -61,8 +61,5 @@ Save a new URL to the given shortcode.
 **Response**
 
 - **200 OK**: The shortcode already maps to that URL.
-
 - **201 Created**: The URL was successfully shortened to the given short code, which is returned.
-
 - **303 See Other**: The given shortcode is already taken, by the returned `url`.
-
