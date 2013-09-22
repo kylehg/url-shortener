@@ -6,6 +6,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"math/rand"
 	"strings"
+	"time"
 )
 
 const NETWORK = "tcp"
@@ -16,13 +17,19 @@ const ALPHABET_LEN = len(ALPHABET)
 const DEFAULT_LEN = 5
 
 var conn, err = redis.Dial(NETWORK, ADDRESS)
-if err != nil {
-	panic("Error connecting to Redis database: " + err.Error())
+// TODO: Better way to refer to connection
+// if err != nil {
+// 	panic("Error connecting to Redis database: " + err.Error())
+// }
+
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func ShortenUrl(w http.ResponseWriter, r *http.Request, code string) (code string, err error) {
 }
 
 
 // Shorten the given URL and return the shortcode
-func ShortenUrl(url string) (code string, err error) {
+func ShortenUrl(url string, code string) (code string, err error) {
 	// First, check that URL isn't already mapped by a random shortcode
 	code, err = redis.String(conn.Do("GET", urlKey(url)))
 	if err != redis.ErrNil {
@@ -53,20 +60,22 @@ func ShortenUrl(url string) (code string, err error) {
 // successfully saved or already mapped to the URL, false if it was taken
 func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	// Attempt to set the shortcode
-	wasSet, err := redis.Bool(conn.Do("SETNX", codeKey(code), url))
+	success, err := redis.Bool(conn.Do("SETNX", codeKey(code), url))
 	if err != nil {
 		return
 	}
 
-	if !wasSet {
+	// If failed, check that the code doesn't already map to the shortcode
+	if !success {
 		var setUrl string
 		setUrl, err = redis.String(conn.Do("GET", codeKey(code)))
 		success = setUrl == url
 		return
 	}
 
-	return true, nil
+	return
 }
+
 
 // Return the URL for the given shortcode.
 func LookupUrl(code string) (url string, err error) {
@@ -78,7 +87,7 @@ func LookupUrl(code string) (url string, err error) {
 func genRandShortcode(n int) string {
 	code := make([]string, n)
 	for i := 0; i < n; i++ {
-		code[i] = string(ALPHABET[rand.Intn(ALPHABET_LEN)])
+		code[i] = string(ALPHABET[r.Intn(ALPHABET_LEN)])
 	}
 	res := strings.Join(code, "")
 	fmt.Println("Random code " + res)

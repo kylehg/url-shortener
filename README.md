@@ -15,9 +15,8 @@ Unless otherwise specified, API responses are encoded as JSON and take the form:
         code: "ggl"
       },
       meta: {
-        response_code: 200,
-        response_text: "Created",
-        error_text: "",
+        created: true,
+        error_text: ""
       }
     }
 

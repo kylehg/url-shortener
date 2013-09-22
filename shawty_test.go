@@ -8,7 +8,11 @@ import (
 // Test that generating
 func TestGenRandShortcode(t *testing.T) {
 	for i := 0; i < 25; i++ {
-		fmt.Println(genRandShortcode(5))
+		shortcode := genRandShortcode(5)
+		if len(shortcode) != 5 {
+			t.Error("Shortcode not expected length.")
+		}
+		fmt.Println(shortcode)
 	}
 }
 
