@@ -17,6 +17,7 @@ const ALPHABET_LEN = len(ALPHABET)
 const DEFAULT_LEN = 5
 
 var conn, err = redis.Dial(NETWORK, ADDRESS)
+
 // TODO: Better way to refer to connection
 // if err != nil {
 // 	panic("Error connecting to Redis database: " + err.Error())
@@ -26,7 +27,6 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func ShortenUrl(w http.ResponseWriter, r *http.Request, code string) (code string, err error) {
 }
-
 
 // Shorten the given URL and return the shortcode
 func ShortenUrl(url string, code string) (code string, err error) {
@@ -55,7 +55,6 @@ func ShortenUrl(url string, code string) (code string, err error) {
 	return
 }
 
-
 // Shorten the given URL to the given code. Return true if the URL was
 // successfully saved or already mapped to the URL, false if it was taken
 func ShortenUrlToCode(url string, code string) (success bool, err error) {
@@ -76,12 +75,10 @@ func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	return
 }
 
-
 // Return the URL for the given shortcode.
 func LookupUrl(code string) (url string, err error) {
 	return redis.String(conn.Do("GET", codeKey(code)))
 }
-
 
 // Generate a string of n random chars from ALPHABET
 func genRandShortcode(n int) string {
@@ -94,12 +91,10 @@ func genRandShortcode(n int) string {
 	return res
 }
 
-
 // Convert a shortcode to a shotcode key for Redis
 func codeKey(code string) string {
 	return "code:" + code
 }
-
 
 // Convert a URL to a URL key for Redis
 func urlKey(code string) string {

@@ -14,14 +14,12 @@ var siteConfig = &SiteConfig{
 	TemplatesDir: "templates", // TODO: Use this
 }
 
-
 // Handle an error by throwing a 500
 func handleErr(w http.ResponseWriter, err error) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
-
 
 // Handler for the main page.
 func handleIndex(w http.ResponseWriter, fromLookup bool) {
@@ -30,11 +28,9 @@ func handleIndex(w http.ResponseWriter, fromLookup bool) {
 	handleErr(w, tpl.ExecuteTemplate(w, "index.html", p))
 }
 
-
 // Render a normal JSON response
 func jsonResponse(w http.ResponseWriter, r *http.Request, url string, code string, errTxt string) {
 }
-
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
