@@ -25,11 +25,8 @@ var conn, err = redis.Dial(NETWORK, ADDRESS)
 
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func ShortenUrl(w http.ResponseWriter, r *http.Request, code string) (code string, err error) {
-}
-
 // Shorten the given URL and return the shortcode
-func ShortenUrl(url string, code string) (code string, err error) {
+func ShortenUrl(url string) (code string, err error) {
 	// First, check that URL isn't already mapped by a random shortcode
 	code, err = redis.String(conn.Do("GET", urlKey(url)))
 	if err != redis.ErrNil {
@@ -59,7 +56,7 @@ func ShortenUrl(url string, code string) (code string, err error) {
 // successfully saved or already mapped to the URL, false if it was taken
 func ShortenUrlToCode(url string, code string) (success bool, err error) {
 	// Attempt to set the shortcode
-	success, err := redis.Bool(conn.Do("SETNX", codeKey(code), url))
+	success, err = redis.Bool(conn.Do("SETNX", codeKey(code), url))
 	if err != nil {
 		return
 	}
@@ -97,6 +94,6 @@ func codeKey(code string) string {
 }
 
 // Convert a URL to a URL key for Redis
-func urlKey(code string) string {
-	return "url:" + code
+func urlKey(url string) string {
+	return "url:" + url
 }

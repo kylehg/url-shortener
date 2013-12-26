@@ -1,18 +1,10 @@
 package shawty
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 )
-
-type SiteConfig struct {
-	StaticPath string
-}
-
-var siteConfig = &SiteConfig{
-	StaticPath:   "/static/",
-	TemplatesDir: "templates", // TODO: Use this
-}
 
 // Handle an error by throwing a 500
 func handleErr(w http.ResponseWriter, err error) {
@@ -25,7 +17,7 @@ func handleErr(w http.ResponseWriter, err error) {
 func handleIndex(w http.ResponseWriter, fromLookup bool) {
 	// TODO: Handle redirect from failed lookup
 	tpl := template.Must(template.ParseFiles("templates/index.html"))
-	handleErr(w, tpl.ExecuteTemplate(w, "index.html", p))
+	handleErr(w, tpl.ExecuteTemplate(w, "index.html", nil))
 }
 
 // Render a normal JSON response
@@ -47,9 +39,9 @@ func main() {
 		} else {
 			// Extract and validate URL parameter
 			params := r.URL.Query()
-			url := params["url"]
-			if len(url) == 0 {
-				// TODO handle bad url
+			url := params["url"][0]
+			if len(url) == 1 {
+				// TODO handle too many params
 			}
 
 			// TODO validate URL

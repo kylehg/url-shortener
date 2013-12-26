@@ -19,12 +19,9 @@ sty.init = ->
 sty.onFormSubmit = (e) ->
   e.preventDefault()
 
-  if (!sty.isValidForm())
-    return false
-
   data =
     url: $(sty.SHORTEN_FORM_ID).val()
-    code: $(sty.CODE_FIELD_ID).val()
+    code: $(sty.CODE_FIELD_ID).trim().val()
 
   $.post sty.POST_URL, data, sty.onResponse, 'json'
 
