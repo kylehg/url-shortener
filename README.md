@@ -1,13 +1,15 @@
 Shawty: The Hiptser URL Shortener
-=====
+=================================
 
 A URL shortener written in Go, using Redis. Because why not.
 
 
 API
------
+---
 
-Unless otherwise specified, API responses are encoded as JSON and take the form:
+**NB: The following is the spec, and does not yet work.**
+
+API responses are encoded as JSON and take the form:
 
     {
       data: {
@@ -20,13 +22,11 @@ Unless otherwise specified, API responses are encoded as JSON and take the form:
       }
     }
 
-### `/`
+#### `GET /`
 
-#### GET
+The main homepage.
 
-The main HTML app.
-
-#### PUT + POST
+#### `POST /`
 
 **Parameters**
 
@@ -38,9 +38,7 @@ The main HTML app.
 - **201 Created**: The URL was successfully shortened to a new short code, returned as `code`.
 
 
-### `/:shortcode`
-
-#### GET
+#### `GET /:shortcode`
 
 Lookup the URL at the given shortcode.
 
@@ -49,16 +47,21 @@ Lookup the URL at the given shortcode.
 - **302 Found**: The shortcode maps to the redirecting URL.
 - **404 Not Found**: There is no URL for the given shortcode. Returns the HTML app.
 
-#### PUT + POST
+#### `POST /:shortcode`
 
 Save a new URL to the given shortcode.
 
 **Parameters**
 
-- `url`: A URL to shorten
+- `url`: A URL to shorten.
 
 **Response**
 
 - **200 OK**: The shortcode already maps to that URL.
 - **201 Created**: The URL was successfully shortened to the given short code, which is returned.
 - **303 See Other**: The given shortcode is already taken, by the returned `url`.
+
+#### `GET /:shortcode/stats[.json]`
+
+Return stats for the given shortened URL, either as a rendered page or as JSON.
+
