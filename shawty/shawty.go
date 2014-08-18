@@ -3,25 +3,14 @@ package shawty
 import (
 	"errors"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"math/rand"
 	"strings"
 	"time"
 )
 
-const NETWORK = "tcp"
-const ADDRESS = ":6379"
-
 const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 const ALPHABET_LEN = len(ALPHABET)
 const DEFAULT_LEN = 5
-
-var conn, err = redis.Dial(NETWORK, ADDRESS)
-
-// TODO: Better way to refer to connection
-// if err != nil {
-// 	panic("Error connecting to Redis database: " + err.Error())
-// }
 
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -86,14 +75,4 @@ func genRandShortcode(n int) string {
 	res := strings.Join(code, "")
 	fmt.Println("Random code " + res)
 	return res
-}
-
-// Convert a shortcode to a shotcode key for Redis
-func codeKey(code string) string {
-	return "code:" + code
-}
-
-// Convert a URL to a URL key for Redis
-func urlKey(url string) string {
-	return "url:" + url
 }

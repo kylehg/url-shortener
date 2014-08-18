@@ -1,69 +1,87 @@
-package shawty
+package main
 
 import (
 	"fmt"
-	"html/template"
+	"json"
 	"net/http"
+
+	"github.com/kylehg/shawty/shawty"
 )
 
-// Handle an error by throwing a 500
-func handleErr(w http.ResponseWriter, err error) {
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+const (
+	SHORTCODE_KEY = "code"
+	URL_KEY = "url"
+)
+
+// type Json map[string]interface{}
+
+// func (j Json) String() string {
+// 	bytes, err := json.Marshal(j)
+// 	if err != nil {
+// 		return ""
+// 	}
+// 	return string(bytes)
+// }
+
+// func serveJson(w http.ResponseWriter, url code, shortcode string) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	data := map[string]interface{"data": {}}
+// 	fmt.Fprintf(w, Json)
+// }
+
+func serveErr(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-// Handler for the main page.
-func handleIndex(w http.ResponseWriter, fromLookup bool) {
-	// TODO: Handle redirect from failed lookup
-	tpl := template.Must(template.ParseFiles("templates/index.html"))
-	handleErr(w, tpl.ExecuteTemplate(w, "index.html", nil))
+// GET /
+func handleIndex(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Index"))
 }
 
-// Render a normal JSON response
-func jsonResponse(w http.ResponseWriter, r *http.Request, url string, code string, errTxt string) {
+// POST /
+func handleCreate(w http.ResponseWriter, r *http.Request) {
+	url := r.PostForm.Get(URL_KEY)
+	w.Write([]byte(url))
+	// TODO validate url
+	// shortcode, err := shawty.ShortenUrl(url)
+	// if err != nil {
+	// 	serveErr(w, err)
+	// 	return
+	// }
+}
+
+// GET /:shortcode
+func handleLookup(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Lookup"))
+}
+
+// POST /:shortcode
+func handleCreateWithCode(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("CreateWithCode"))
 }
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Domain root: serve the homepage on GET, create shortened URLs on POST
-		if r.Method == "GET" {
-			if code := r.URL.Path; code == "" {
-				handleIndex(w, false)
-			} else {
-				url, err := LookupUrl(code)
-				handleErr(w, err)
+		fmt.Printf("Handling request to %s\n", r.URL.Path)
 
-				http.Redirect(w, r, url, http.StatusFound)
+		if r.URL.Path == "/" {
+			switch r.Method {
+			case "GET":
+				handleIndex(w, r)
+			case "POST":
+				handleCreate(w, r)
 			}
 		} else {
-			// Extract and validate URL parameter
-			params := r.URL.Query()
-			url := params["url"][0]
-			if len(url) == 1 {
-				// TODO handle too many params
-			}
-
-			// TODO validate URL
-
-			if code := r.URL.Path; code == "" {
-				// POSTing to root: generate a random shortcode
-				code, err := ShortenUrl(url)
-				handleErr(w, err)
-
-				jsonResponse(w, r, url, code, "")
-			} else {
-				// POSTing to a path: map to the given shortcode
-				success, err := ShortenUrlToCode(url, code)
-				handleErr(w, err)
-
-				if success == false {
-					jsonResponse(w, r, url, "", fmt.Sprintf("The code %s is taken."))
-				}
-
-				jsonResponse(w, r, url, code, "")
+			switch r.Method {
+			case "GET":
+				handleLookup(w, r)
+			case "POST":
+				handleCreateWithCode(w, r)
 			}
 		}
 	})
+
+	fmt.Printf("Server running on port 8080...\n")
 	http.ListenAndServe(":8080", nil)
 }
