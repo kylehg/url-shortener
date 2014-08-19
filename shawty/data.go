@@ -45,8 +45,31 @@ func GetCodeFromUrl(url string) (string, error) {
 }
 
 // Set the URL for a given shortcode it the code doesn't already exist
-func SetUrlForCode(code string, url string) (bool, error) {
+func SetUrlForCode(code string, url string) error {
 	conn := getConn()
+	existingUrl, err := GetUrlFromCode(code)
+	if url == existingUrl {
+		return nil
+	}
+	if err != redis.ErrNil {
+		return // TODO return error "Code %s already maps to URL %s"
+	}
+
 	wasSet, err := redis.Bool(conn.Do("SETNX", codeKey(code), url))
-	if
+	if err != nil {
+		return err
+	}
+
+	urlMapped, err := redis.Bool(conn.Do("SETNX", urlKey(url), code))
+	if !urlMapped || err != nil {
+		return // TODO return error "URL %salready mapped by code %s" (may be race condition)
+	}
+
+	return nil
+}
+
+// Get a random, unused shortcode for a URL
+func CreateRandomShortcode() (string, error) {
+	// TODO
+	return "", nil
 }
