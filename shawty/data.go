@@ -1,6 +1,9 @@
 package shawty
 
-import "github.com/garyburd/redigo/redis"
+import (
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+)
 
 const (
 	NETWORK                    = "tcp"
@@ -12,16 +15,16 @@ const (
 	REDIS_SHORTCODE_KEY_PREFIX = REDIS_KEY_PREFIX + "code:"
 )
 
-var redisConn
+var redisConn redis.Conn
 
 // Get the Redis connection
 func getConn() redis.Conn {
-	var err
-	if redisConn != nil {
+	var err error
+	if redisConn == nil {
 		if redisConn, err = redis.Dial(NETWORK, ADDRESS); err != nil {
 			panic("Error connecting to Redis database: " + err.Error())
 		}
-		if _, err = conn.Do("SELECT", DEFAULT_DB); err != nil {
+		if _, err = redisConn.Do("SELECT", DEFAULT_DB); err != nil {
 			panic("Cannot select default database")
 		}
 	}
@@ -42,10 +45,6 @@ func redisGet(key string) (string, error) {
 	return redis.String(getConn().Do("GET", key))
 }
 
-func redisSetIfNotExists(key string, val string) (bool, error) {
-	return redis.Bool(getConn().Do("SET", key, val, "NX"))
-}
-
 // Lookup the URL for a given shortcode
 func GetUrl(code string) (string, error) {
 	return redisGet(codeKey(code))
@@ -58,19 +57,13 @@ func GetDefaultCode(url string) (string, error) {
 
 // Sets a custom, nondefault shortcode for a given URL
 func SetCustomCode(url string, code string) error {
-	wasSet, err := redisSetIfNotExists(codeKey(code), url)
+	resp, err := redis.String(getConn().Do("SET", codeKey(code), url, "NX"))
 	if err != nil {
 		return err
 	}
 
-	if !wasSet {
-		existingUrl, err := GetUrl(code)
-		if err != nil {
-			return err
-		} else if existingUrl == url {
-			return nil
-		}
-		return // TODO ERROR code is already taken
+	if resp != "OK" {
+		return fmt.Errorf("Shortcode %s is already mapped to a URL", code)
 	}
 
 	return nil
@@ -83,42 +76,23 @@ func SetDefaultCode(url string, code string) error {
 	conn.Send("MULTI")
 	conn.Send("SET", codeKey(code), url, "NX")
 	conn.Send("SET", urlKey(url), code, "NX")
-	responses, err := conn.DO("EXEC")
+	responses, err := redis.Values(conn.Do("EXEC"))
 	if err != nil {
 		return err
 	}
 
-	// Check if default code is used
-	// If used and maps to same url, return nil
-	// If used and maps to different url, return error
-	existingUrl, err := GetUrl(code)
-	if err != redis.ErrNil {
-		if existingUrl == url {
-			return nil
-		}
-		return err
+	codeWasSet := responses[0] == "OK"
+	urlWasSet := responses[1] == "OK"
+	if codeWasSet && urlWasSet {
+		return nil
 	}
 
-	// Set code -> url
-	// If fails, return error
-	wasSet, err := redisSetIfNotExists(codeKey(code), url)
-	if !wasSet {
-		return // TODO Race error
-	} else if err != nil {
-		return err
+	// Undo partial set
+	if codeWasSet && !urlWasSet {
+		conn.Do("DEL", codeKey(code))
 	}
 
-	// Set url -> code
-	// If fails:
-	// - unset code -> url
-	// - return error
-	wasSet, err := redisSetIfNotExists(urlKey(url), code)
-	if !wasSet || err != nil {
-		// TODO
-		return err
-	}
-
-	// Else return nil
+	return fmt.Errorf("Failed to set default shortcode %s for %s", code, url)
 }
 
 // Get a random, unused shortcode for a URL

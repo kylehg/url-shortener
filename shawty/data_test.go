@@ -1,13 +1,13 @@
 package shawty
 
-import (
-	"fmt"
-	"github.com/garyburd/redigo/redis"
-	"testing"
-)
+import "testing"
 
 func TestGetAndSet(t *testing.T) {
-	var err, code, url
+	var (
+		err  error
+		code string
+		url  string
+	)
 
 	google := "https://www.google.com/"
 	facebook := "https://www.facebook.com/"
@@ -47,6 +47,10 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("Setting multiple default codes should fail")
 	}
 
+	if url, err = GetUrl("moogl"); url == google || err == nil {
+		t.Error("Setting multiple default codes should fail to create a code -> url mapping")
+	}
+
 	if err = SetCustomCode(facebook, "fb"); err != nil {
 		t.Error("Setting multiple custom codes should work: " + err.Error())
 	}
@@ -71,12 +75,12 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("The original custom code should not be overwritten: " + err.Error())
 	}
 
-	if err = SetDefaultCode(google, "googl"); err != nil {
-		t.Error("Resetting the same default code should succeed: " + err.Error())
+	if err = SetDefaultCode(google, "googl"); err == nil {
+		t.Error("Resetting the same default code should still fail")
 	}
 
-	if err = SetCustomCode(facebook, "fb"); err != nil {
-		t.Error("Resetting the same custom code should succeed: " + err.Error())
+	if err = SetCustomCode(facebook, "fb"); err == nil {
+		t.Error("Resetting the same custom code should still fail")
 	}
 
 	conn.Do("FLUSHDB")
