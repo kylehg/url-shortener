@@ -69,7 +69,7 @@ func SetCustomCode(url string, code string) error {
 	return nil
 }
 
-// Set the defua for a given shortcode it the code doesn't already exist
+// Set the defualt for a given shortcode it the code doesn't already exist
 func SetDefaultCode(url string, code string) error {
 	conn := getConn()
 
@@ -90,6 +90,9 @@ func SetDefaultCode(url string, code string) error {
 	// Undo partial set
 	if codeWasSet && !urlWasSet {
 		conn.Do("DEL", codeKey(code))
+	}
+	if !codeWasSet && urlWasSet {
+		conn.Do("DEL", urlKey(url))
 	}
 
 	return fmt.Errorf("Failed to set default shortcode %s for %s", code, url)

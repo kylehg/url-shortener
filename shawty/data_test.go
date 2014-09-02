@@ -67,6 +67,10 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("The original default code should not be overwritten: " + err.Error())
 	}
 
+	if code, err = GetDefaultCode(medium); code == "googl" || err == nil {
+		t.Error("Overwriting a default code should fail to create a url -> code mapping")
+	}
+
 	if err = SetCustomCode(medium, "f"); err == nil {
 		t.Error("Overwriting a custom code should fail")
 	}
