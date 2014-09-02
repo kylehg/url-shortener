@@ -3,12 +3,12 @@ package shawty
 import "github.com/garyburd/redigo/redis"
 
 const (
-	NETWORK = "tcp"
-	ADDRESS = ":6379"
-	DEFAULT_DB = 0
-	TEST_DB = 2
-	REDIS_KEY_PREFIX = "shawty:"
-	REDIS_URL_KEY_PREFIX = REDIS_KEY_PREFIX + "url:"
+	NETWORK                    = "tcp"
+	ADDRESS                    = ":6379"
+	DEFAULT_DB                 = 0
+	TEST_DB                    = 2
+	REDIS_KEY_PREFIX           = "shawty:"
+	REDIS_URL_KEY_PREFIX       = REDIS_KEY_PREFIX + "url:"
 	REDIS_SHORTCODE_KEY_PREFIX = REDIS_KEY_PREFIX + "code:"
 )
 
@@ -21,9 +21,9 @@ func getConn() redis.Conn {
 		if redisConn, err = redis.Dial(NETWORK, ADDRESS); err != nil {
 			panic("Error connecting to Redis database: " + err.Error())
 		}
-	  if _, err = conn.Do("SELECT", DEFAULT_DB); err != nil {
-	    panic("Cannot select default database")
-	  }
+		if _, err = conn.Do("SELECT", DEFAULT_DB); err != nil {
+			panic("Cannot select default database")
+		}
 	}
 	return redisConn
 }
@@ -39,7 +39,7 @@ func urlKey(url string) string {
 }
 
 func redisGet(key string) (string, error) {
-	return redis.String(getConn().Do("GET", key)
+	return redis.String(getConn().Do("GET", key))
 }
 
 func redisSetIfNotExists(key string, val string) (bool, error) {
@@ -88,8 +88,6 @@ func SetDefaultCode(url string, code string) error {
 		return err
 	}
 
-
-
 	// Check if default code is used
 	// If used and maps to same url, return nil
 	// If used and maps to different url, return error
@@ -115,8 +113,8 @@ func SetDefaultCode(url string, code string) error {
 	// - unset code -> url
 	// - return error
 	wasSet, err := redisSetIfNotExists(urlKey(url), code)
-	if !wasSet || if err != nil {
-		// T
+	if !wasSet || err != nil {
+		// TODO
 		return err
 	}
 
