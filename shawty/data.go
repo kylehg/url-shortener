@@ -97,9 +97,3 @@ func SetDefaultCode(url string, code string) error {
 
 	return fmt.Errorf("Failed to set default shortcode %s for %s", code, url)
 }
-
-// Get a random, unused shortcode for a URL
-func CreateRandomShortcode() (string, error) {
-	// TODO
-	return "", nil
-}
