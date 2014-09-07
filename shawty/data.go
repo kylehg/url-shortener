@@ -56,7 +56,7 @@ func GetDefaultCode(url string) (string, error) {
 }
 
 // Sets a custom, nondefault shortcode for a given URL
-func SetCustomCode(url string, code string) error {
+func setCustomCode(url string, code string) error {
 	resp, err := redis.String(getConn().Do("SET", codeKey(code), url, "NX"))
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func SetCustomCode(url string, code string) error {
 }
 
 // Set the defualt for a given shortcode it the code doesn't already exist
-func SetDefaultCode(url string, code string) error {
+func setDefaultCode(url string, code string) error {
 	conn := getConn()
 
 	conn.Send("MULTI")

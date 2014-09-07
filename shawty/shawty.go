@@ -3,6 +3,7 @@ package shawty
 import (
 	"fmt"
 	"math/rand"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -14,7 +15,7 @@ const (
 )
 
 // Generate a string of random characters from ALPHABET
-func GetRandomShortcode() string {
+func getRandomShortcode() string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	code := make([]string, DEFAULT_CODE_LEN)
@@ -25,8 +26,9 @@ func GetRandomShortcode() string {
 }
 
 // Check if a URL is valid
-func isValidUrl(url string) bool {
-	return true // TODO
+func isValidUrl(rawUrl string) bool {
+	_, err := url.Parse(rawUrl)
+	return err != nil
 }
 
 // Shorten a URL to a default code
@@ -35,8 +37,8 @@ func ShortenDefault(url string) (string, error) {
 		return "", fmt.Errorf("%s is not a valid URL", url)
 	}
 
-	code := GetRandomShortcode()
-	if err := SetDefaultCode(url, code); err != nil {
+	code := getRandomShortcode()
+	if err := setDefaultCode(url, code); err != nil {
 		return ShortenDefault(url)
 	}
 	return code, nil
@@ -48,5 +50,5 @@ func ShortenCustom(url string, code string) error {
 		return fmt.Errorf("%s is not a valid URL", url)
 	}
 
-	return SetCustomCode(url, code)
+	return setCustomCode(url, code)
 }

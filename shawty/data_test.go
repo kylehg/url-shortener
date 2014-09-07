@@ -19,7 +19,7 @@ func TestGetAndSet(t *testing.T) {
 	}
 	conn.Do("FLUSHDB")
 
-	if err = SetDefaultCode(google, "googl"); err != nil {
+	if err = setDefaultCode(google, "googl"); err != nil {
 		t.Error("Setting a default code should work: " + err.Error())
 	}
 
@@ -31,7 +31,7 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("Getting a default code by URL should work: " + err.Error())
 	}
 
-	if err = SetCustomCode(facebook, "f"); err != nil {
+	if err = setCustomCode(facebook, "f"); err != nil {
 		t.Error("Setting a custom code should work: " + err.Error())
 	}
 
@@ -43,7 +43,7 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("Getting a default code when there's only a custom code should return nil")
 	}
 
-	if err = SetDefaultCode(google, "moogl"); err == nil {
+	if err = setDefaultCode(google, "moogl"); err == nil {
 		t.Error("Setting multiple default codes should fail")
 	}
 
@@ -51,15 +51,15 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("Setting multiple default codes should fail to create a code -> url mapping")
 	}
 
-	if err = SetCustomCode(facebook, "fb"); err != nil {
+	if err = setCustomCode(facebook, "fb"); err != nil {
 		t.Error("Setting multiple custom codes should work: " + err.Error())
 	}
 
-	if err = SetDefaultCode(facebook, "faceb"); err != nil {
+	if err = setDefaultCode(facebook, "faceb"); err != nil {
 		t.Error("Setting a default code and a custom code should work: " + err.Error())
 	}
 
-	if err = SetDefaultCode(medium, "googl"); err == nil {
+	if err = setDefaultCode(medium, "googl"); err == nil {
 		t.Error("Overwriting a default code should fail")
 	}
 
@@ -71,7 +71,7 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("Overwriting a default code should fail to create a url -> code mapping")
 	}
 
-	if err = SetCustomCode(medium, "f"); err == nil {
+	if err = setCustomCode(medium, "f"); err == nil {
 		t.Error("Overwriting a custom code should fail")
 	}
 
@@ -79,11 +79,11 @@ func TestGetAndSet(t *testing.T) {
 		t.Error("The original custom code should not be overwritten: " + err.Error())
 	}
 
-	if err = SetDefaultCode(google, "googl"); err == nil {
+	if err = setDefaultCode(google, "googl"); err == nil {
 		t.Error("Resetting the same default code should still fail")
 	}
 
-	if err = SetCustomCode(facebook, "fb"); err == nil {
+	if err = setCustomCode(facebook, "fb"); err == nil {
 		t.Error("Resetting the same custom code should still fail")
 	}
 
