@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -12,29 +13,39 @@ const (
 	URL_KEY       = "url"
 )
 
-// type Json map[string]interface{}
+type Json map[string]interface{}
 
-// func (j Json) String() string {
-// 	bytes, err := json.Marshal(j)
-// 	if err != nil {
-// 		return ""
-// 	}
-// 	return string(bytes)
-// }
+func (j Json) String() string {
+	bytes, err := json.Marshal(j)
+	if err != nil {
+		return ""
+	}
+	return string(bytes)
+}
 
-// func serveJson(w http.ResponseWriter, url code, shortcode string) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	data := map[string]interface{"data": {}}
-// 	fmt.Fprintf(w, Json)
-// }
+func writeJson(data Json, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, data)
+}
 
-func serveErr(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusInternalServerError)
+func jsonErrCode(err error, errCode int, w http.ResponseWriter) {
+	w.WriteHeader(errCode)
+	data := Json{"error": err.Error()}
+	writeJson(data, w)
+}
+
+func jsonErr(err error, w http.ResponseWriter) {
+	jsonErrCode(err, http.StatusInternalServerError, w)
+}
+
+func jsonRes(data Json, statusCode int, w http.ResponseWriter) {
+	w.WriteHeader(statusCode)
+	writeJson(data, w)
 }
 
 func getFormParam(param string, w http.ResponseWriter, r *http.Request) string {
 	if err := r.ParseForm(); err != nil {
-		serveErr(w, err)
+		jsonErr(err, w)
 		return ""
 	}
 	return r.Form.Get(param)
@@ -50,9 +61,10 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 	url := getFormParam(URL_KEY, w, r)
 	code, err := shawty.ShortenDefault(url)
 	if err != nil {
-		serveErr(w, err)
+		jsonErr(err, w)
+		return
 	}
-	w.Write([]byte("Create: " + url + " -> " + code))
+	jsonRes(Json{"code": code, "url": url}, http.StatusCreated, w)
 }
 
 // GET /:shortcode
@@ -60,9 +72,10 @@ func handleLookup(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[1:]
 	url, err := shawty.GetUrl(code)
 	if err != nil {
-		serveErr(w, err)
+		jsonErr(err, w)
+		return
 	}
-	w.Write([]byte("Lookup: " + url + " -> " + code))
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 // POST /:shortcode
@@ -70,9 +83,10 @@ func handleCreateWithCode(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[1:]
 	url := getFormParam(URL_KEY, w, r)
 	if err := shawty.ShortenCustom(url, code); err != nil {
-		serveErr(w, err)
+		jsonErr(err, w)
+		return
 	}
-	w.Write([]byte("CreateWithCode: " + url + " -> " + code))
+	jsonRes(Json{"code": code, "url": url}, http.StatusCreated, w)
 }
 
 func main() {
