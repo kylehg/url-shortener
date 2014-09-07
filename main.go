@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"json"
 	"net/http"
 
 	"github.com/kylehg/shawty/shawty"
@@ -10,7 +9,7 @@ import (
 
 const (
 	SHORTCODE_KEY = "code"
-	URL_KEY = "url"
+	URL_KEY       = "url"
 )
 
 // type Json map[string]interface{}
@@ -33,6 +32,14 @@ func serveErr(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
+func getFormParam(param string, w http.ResponseWriter, r *http.Request) string {
+	if err := r.ParseForm(); err != nil {
+		serveErr(w, err)
+		return ""
+	}
+	return r.Form.Get(param)
+}
+
 // GET /
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Index"))
@@ -40,30 +47,38 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 // POST /
 func handleCreate(w http.ResponseWriter, r *http.Request) {
-	url := r.PostForm.Get(URL_KEY)
-	w.Write([]byte(url))
-	// TODO validate url
-	// shortcode, err := shawty.ShortenUrl(url)
-	// if err != nil {
-	// 	serveErr(w, err)
-	// 	return
-	// }
+	url := getFormParam(URL_KEY, w, r)
+	code, err := shawty.ShortenDefault(url)
+	if err != nil {
+		serveErr(w, err)
+	}
+	w.Write([]byte("Create: " + url + " -> " + code))
 }
 
 // GET /:shortcode
 func handleLookup(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Lookup"))
+	code := r.URL.Path[1:]
+	url, err := shawty.GetUrl(code)
+	if err != nil {
+		serveErr(w, err)
+	}
+	w.Write([]byte("Lookup: " + url + " -> " + code))
 }
 
 // POST /:shortcode
 func handleCreateWithCode(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("CreateWithCode"))
+	code := r.URL.Path[1:]
+	url := getFormParam(URL_KEY, w, r)
+	if err := shawty.ShortenCustom(url, code); err != nil {
+		serveErr(w, err)
+	}
+	w.Write([]byte("CreateWithCode: " + url + " -> " + code))
 }
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Domain root: serve the homepage on GET, create shortened URLs on POST
-		fmt.Printf("Handling request to %s\n", r.URL.Path)
+		fmt.Printf("%s %s\n", r.Method, r.URL.Path)
 
 		if r.URL.Path == "/" {
 			switch r.Method {

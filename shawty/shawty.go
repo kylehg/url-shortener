@@ -28,7 +28,7 @@ func getRandomShortcode() string {
 // Check if a URL is valid
 func isValidUrl(rawUrl string) bool {
 	_, err := url.Parse(rawUrl)
-	return err != nil
+	return err == nil
 }
 
 // Shorten a URL to a default code
