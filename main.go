@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/kylehg/shawty/shawty"
 )
 
@@ -23,94 +24,100 @@ func (j Json) String() string {
 	return string(bytes)
 }
 
-func writeJson(data Json, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+type App struct {
+	params httprouter.Params
+	req *http.Request
+	res http.ResponseWriter
+	router http.Handler
+}
+
+todo new app function
+
+func (app App) route(path string, method string, handle func(*App)) {
+	fmt.Printf("%s %s\n", method, path)
+	handler := func (res http.ResponseWriter, req *http.Request) {
+		app.res = res
+		app.req = req
+		handle(app)
+	}
+	if "GET" == method {
+		app.router.GET(path, handler)
+	} else if "POST" == method {
+		app.router.POST(path, handler)
+	}
+}
+
+func (app App) writeJson(data Json, statusCode int) {
+	app.res.WriteHeader(statusCode)
+	app.res.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, data)
 }
 
-func jsonErrCode(err error, errCode int, w http.ResponseWriter) {
-	w.WriteHeader(errCode)
-	data := Json{"error": err.Error()}
-	writeJson(data, w)
+func (app App) writeJsonErr(err error) {
+	app.writeJson(Json{"error": err.Error()}, http.StatusInternalServerError)
 }
 
-func jsonErr(err error, w http.ResponseWriter) {
-	jsonErrCode(err, http.StatusInternalServerError, w)
+func (app App) redirect(url string) {
+	http.Redirect(app.res, app.req, url, http.StatusFound)
 }
 
-func jsonRes(data Json, statusCode int, w http.ResponseWriter) {
-	w.WriteHeader(statusCode)
-	writeJson(data, w)
-}
-
-func getFormParam(param string, w http.ResponseWriter, r *http.Request) string {
-	if err := r.ParseForm(); err != nil {
+func (app App) getFormParam(param string) string {
+	if err := app.req.ParseForm(); err != nil {
 		jsonErr(err, w)
 		return ""
 	}
-	return r.Form.Get(param)
+	return app.req.Form.Get(param)
+}
+
+func (app App) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+
 }
 
 // GET /
-func handleIndex(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Index"))
+func handleIndex(app *App) {
+	app.res.Write([]byte("Index"))
 }
 
 // POST /
-func handleCreate(w http.ResponseWriter, r *http.Request) {
-	url := getFormParam(URL_KEY, w, r)
+func handleCreate(app *App) {
+	url := app.getFormParam(URL_KEY)
 	code, err := shawty.ShortenDefault(url)
 	if err != nil {
-		jsonErr(err, w)
+		app.writeJsonErr(err)
 		return
 	}
-	jsonRes(Json{"code": code, "url": url}, http.StatusCreated, w)
+	app.writeJson(Json{"code": code, "url": url}, http.StatusCreated)
 }
 
 // GET /:shortcode
-func handleLookup(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Path[1:]
+func handleLookup(app *App) {
+	code := app.req.URL.Path[1:]
 	url, err := shawty.GetUrl(code)
 	if err != nil {
-		jsonErr(err, w)
+		app.writeJsonErr(err, w)
 		return
 	}
-	http.Redirect(w, r, url, http.StatusFound)
+	app.redirect(url)
 }
 
 // POST /:shortcode
-func handleCreateWithCode(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Path[1:]
-	url := getFormParam(URL_KEY, w, r)
+func handleCreateWithCode(app *App) {
+	code := app.req.URL.Path[1:]
+	url := app.getFormParam(URL_KEY)
 	if err := shawty.ShortenCustom(url, code); err != nil {
-		jsonErr(err, w)
+		app.writeJsonErr(err)
 		return
 	}
-	jsonRes(Json{"code": code, "url": url}, http.StatusCreated, w)
+	app.writeJson(Json{"code": code, "url": url}, http.StatusCreated)
 }
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Domain root: serve the homepage on GET, create shortened URLs on POST
-		fmt.Printf("%s %s\n", r.Method, r.URL.Path)
-
-		if r.URL.Path == "/" {
-			switch r.Method {
-			case "GET":
-				handleIndex(w, r)
-			case "POST":
-				handleCreate(w, r)
-			}
-		} else {
-			switch r.Method {
-			case "GET":
-				handleLookup(w, r)
-			case "POST":
-				handleCreateWithCode(w, r)
-			}
-		}
-	})
+	app := newApp()
+	app.route("/", "GET", handleIndex)
+	app.route("/", "POST", handleCreate)
+	app.route("/:hash", "GET", handleLookup)
+	app.route("/:hash", "POST", handleCreateWithCode)
 
 	fmt.Printf("Server running on port 8080...\n")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", app)
 }
